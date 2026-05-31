@@ -50,6 +50,16 @@ import json
 from datetime import datetime
 from collections import OrderedDict
 
+# Forcer l'encodage UTF-8 sur stdout/stderr (évite UnicodeEncodeError sur les
+# consoles Windows cp1252 avec les caractères ✓/✗ et box-drawing)
+for _stream in (sys.stdout, sys.stderr):
+    _reconfig = getattr(_stream, "reconfigure", None)
+    if _reconfig is not None:
+        try:
+            _reconfig(encoding="utf-8")
+        except (ValueError, OSError):
+            pass
+
 # Ajouter le répertoire courant au path pour les imports locaux
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -78,9 +88,9 @@ class StructuredLogger:
             **kwargs
         }
         self.records.append(record)
-        # Écrire immédiatement en mode append
-        with open(self.log_file, 'a') as f:
-            f.write(json.dumps(record) + "\\n")
+        # Écrire immédiatement en mode append (default=str gère numpy int64/float64)
+        with open(self.log_file, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(record, default=str) + "\n")
         return record
     
     def info(self, event, **kwargs):
@@ -98,7 +108,7 @@ class StructuredLogger:
     def save_summary(self, data):
         """Sauvegarde un résumé JSON complet du run"""
         summary_path = os.path.join(self.output_dir, f"summary_{self.run_id}.json")
-        with open(summary_path, 'w') as f:
+        with open(summary_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, default=str)
         return summary_path
     
@@ -231,7 +241,7 @@ class PerformanceProfiler:
     
     def report(self):
         """Affiche le rapport de performance"""
-        print("\\n" + "=" * 70)
+        print("\n" + "=" * 70)
         print("RAPPORT DE PERFORMANCE")
         print("=" * 70)
         print(f"{'Fonction':<40} {'Moyenne (ms)':<15} {'Max (ms)':<12} {'Appels':<8}")
@@ -406,7 +416,7 @@ class Visualizer:
 
 def run_basic_mode(config, profiler, logger=None):
     """Mode d'analyse de base (SVD/PCA standard via NetworkSVDAnalyzer)"""
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("MODE ANALYSE DE BASE (SVD/PCA Standard)")
     print("=" * 80)
     
@@ -428,7 +438,7 @@ def run_basic_mode(config, profiler, logger=None):
     )
     profiler.stop("Initialisation Moteur Base")
     
-    print(f"\\nRéseau généré: {analyzer.n_nodes} nœuds, {analyzer.G.number_of_edges()} arêtes")
+    print(f"\nRéseau généré: {analyzer.n_nodes} nœuds, {analyzer.G.number_of_edges()} arêtes")
     if logger:
         logger.info("network_generated", nodes=analyzer.n_nodes, 
                    edges=analyzer.G.number_of_edges(), mode="basic")
@@ -438,7 +448,7 @@ def run_basic_mode(config, profiler, logger=None):
     S, variance_ratio = analyzer.perform_svd_decomposition()
     profiler.stop("Décomposition SVD")
     
-    print(f"\\nDécomposition SVD:")
+    print(f"\nDécomposition SVD:")
     print(f"  σ₁ = {S[0]:.2f}, σ₅ = {S[4]:.2f}, σ₂₀ = {S[min(19, len(S)-1)]:.2f}")
     if variance_ratio is not None and len(variance_ratio) >= 10:
         print(f"  Variance expliquée par 10 composantes: {np.sum(variance_ratio[:10])*100:.1f}%")
@@ -487,7 +497,7 @@ def run_basic_mode(config, profiler, logger=None):
             output_path=output_path
         )
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("ANALYSE DE BASE TERMINÉE")
     print("=" * 60)
     
@@ -502,7 +512,7 @@ def run_basic_mode(config, profiler, logger=None):
 
 def run_offensive_mode(config, profiler, logger=None):
     """Mode d'analyse offensive (intelligence proactive via OptimizedSVDEngine)"""
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("MODE INTELLIGENCE OFFENSIVE v3.0")
     print("=" * 80)
     
@@ -524,7 +534,7 @@ def run_offensive_mode(config, profiler, logger=None):
     )
     profiler.stop("Initialisation Moteur SVD Optimisé")
     
-    print(f"\\nRéseau: {engine.n_nodes} nœuds, {engine.G.number_of_edges()} arêtes")
+    print(f"\nRéseau: {engine.n_nodes} nœuds, {engine.G.number_of_edges()} arêtes")
     if engine.cache:
         print(f"Cache L3 préchargé: {len(engine.cache.l3)} centralités")
     if logger:
@@ -541,7 +551,7 @@ def run_offensive_mode(config, profiler, logger=None):
     features = engine.extract_spectral_features()
     profiler.stop("Caractéristiques Spectrales")
     
-    print(f"\\nCaractéristiques spectrales:")
+    print(f"\nCaractéristiques spectrales:")
     for k, v in features.items():
         if not isinstance(v, np.ndarray):
             print(f"  {k}: {v:.4f}")
@@ -561,7 +571,7 @@ def run_offensive_mode(config, profiler, logger=None):
     )
     profiler.stop("Scan Proactif Vulnérabilités")
     
-    print(f"\\nTop 10 Surfaces d'Attaque:")
+    print(f"\nTop 10 Surfaces d'Attaque:")
     for i, s in enumerate(surfaces[:10]):
         print(f"  {i+1}. N{s.node_id}: {s.attack_vector} (Score: {s.exploitability_score:.3f}, "
               f"Détection: {s.detection_probability:.3f})")
@@ -580,7 +590,7 @@ def run_offensive_mode(config, profiler, logger=None):
     )
     profiler.stop("Évasion IDS PPO")
     
-    print(f"\\nRésultats d'évasion (cible N{surfaces[0].node_id}):")
+    print(f"\nRésultats d'évasion (cible N{surfaces[0].node_id}):")
     print(f"  Taux de détection moyen: {np.mean(evasion['detection_rates'])*100:.1f}%")
     print(f"  Taux de succès d'évasion: {np.mean(evasion['evasion_success'])*100:.1f}%")
     if evasion.get('rl_rewards'):
@@ -598,7 +608,7 @@ def run_offensive_mode(config, profiler, logger=None):
         transfer = simulator.simulate_transfer_attack(surfaces[0], surfaces[1])
         profiler.stop("Transfer Learning")
         
-        print(f"\\nTransfer Learning (N{surfaces[0].node_id} -> N{surfaces[1].node_id}):")
+        print(f"\nTransfer Learning (N{surfaces[0].node_id} -> N{surfaces[1].node_id}):")
         print(f"  Détection source: {transfer['source_detection']:.4f}")
         print(f"  Détection cible: {transfer['target_detection']:.4f}")
         print(f"  Efficacité: {transfer['transfer_efficiency']:.4f}")
@@ -620,13 +630,13 @@ def run_offensive_mode(config, profiler, logger=None):
     cache_stats = {}
     if engine.cache:
         cache_stats = engine.cache.stats()
-        print(f"\\nCache: {cache_stats['l1_hit_rate']*100:.1f}% hit rate, "
+        print(f"\nCache: {cache_stats['l1_hit_rate']*100:.1f}% hit rate, "
               f"{cache_stats['l1_size']} entrées L1, {cache_stats['l3_metrics']} précalculs L3")
         if logger:
             logger.metric("cache_l1_hit_rate", float(cache_stats['l1_hit_rate']))
             logger.metric("cache_l1_size", cache_stats['l1_size'])
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("INTELLIGENCE OFFENSIVE TERMINÉE")
     print("=" * 60)
     
@@ -642,7 +652,7 @@ def run_offensive_mode(config, profiler, logger=None):
 
 def run_full_mode(config, profiler, logger=None):
     """Mode complet (analyse de base + offensive en séquence)"""
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("MODE COMPLET (Basic + Offensive)")
     print("=" * 80)
     
@@ -654,7 +664,7 @@ def run_full_mode(config, profiler, logger=None):
 
 def run_benchmark_mode(config, profiler, logger=None):
     """Mode benchmark pour mesurer les performances"""
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("MODE BENCHMARK")
     print("=" * 80)
     
@@ -666,7 +676,7 @@ def run_benchmark_mode(config, profiler, logger=None):
     results = []
     
     for n_nodes in node_counts:
-        print(f"\\nBenchmark avec {n_nodes} nœuds...")
+        print(f"\nBenchmark avec {n_nodes} nœuds...")
         
         # Initialisation
         t0 = time.perf_counter()
@@ -703,7 +713,7 @@ def run_benchmark_mode(config, profiler, logger=None):
             logger.metric("benchmark_speedup", svd_time/max(cache_time, 0.001), nodes=n_nodes)
     
     # Résumé
-    print("\\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("RÉSULTATS BENCHMARK")
     print("=" * 70)
     print(f"{'Nœuds':<10} {'Arêtes':<10} {'Init (ms)':<12} {'SVD (ms)':<12} {'Cache (ms)':<12} {'Speedup':<10}")
@@ -758,7 +768,7 @@ class RegressionTester:
     
     def report(self):
         """Affiche le rapport de régression"""
-        print("\\n" + "=" * 70)
+        print("\n" + "=" * 70)
         print("RAPPORT DE RÉGRESSION AUTOMATIQUE (A5)")
         print("=" * 70)
         if not self.violations:
@@ -871,7 +881,7 @@ Exemples d'utilisation:
     print("=" * 80)
     
     # Vérification des modules
-    print("\\nModules disponibles:")
+    print("\nModules disponibles:")
     print(f"  SVD/PCA (Base): {'✓' if SVD_MODULE_AVAILABLE else '✗'}")
     print(f"  Moteur Offensif (Optimisé): {'✓' if OFFENSIVE_MODULE_AVAILABLE else '✗'}")
     if logger:
@@ -897,7 +907,7 @@ Exemples d'utilisation:
             logger.info("execution_complete", mode=args.mode, status="success")
             
     except Exception as e:
-        print(f"\\nErreur lors de l'exécution: {e}")
+        print(f"\nErreur lors de l'exécution: {e}")
         if logger:
             logger.error("execution_failed", error=str(e), error_type=type(e).__name__)
         import traceback
@@ -960,10 +970,10 @@ Exemples d'utilisation:
             }
         }
         summary_path = logger.save_summary(summary)
-        print(f"\\n[A5] Résumé JSON sauvegardé: {summary_path}")
+        print(f"\n[A5] Résumé JSON sauvegardé: {summary_path}")
         print(f"[A5] Logs structurés: {logger.log_file}")
     
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("APPLICATION TERMINÉE")
     print("=" * 80)
     
