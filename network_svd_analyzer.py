@@ -259,7 +259,7 @@ class NetworkSVDAnalyzer:
             k: Nombre de composantes (auto si None)
             use_randomized: Forcer SVD randomized (auto si n > 100)
         """
-        print("\\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print("PHASE 1 : DÉCOMPOSITION SVD (Optimisée v3.0)")
         print("=" * 60)
         
@@ -311,7 +311,7 @@ class NetworkSVDAnalyzer:
         
         print(f"Dimensions de la matrice d'adjacence : {self.adj_matrix.shape}")
         print(f"Rang effectif du réseau : {np.sum(self.S > 1e-10)}")
-        print(f"\\nTop 10 Valeurs Singulières :")
+        print(f"\nTop 10 Valeurs Singulières :")
         for i, s in enumerate(self.S[:10]):
             print(f"  σ_{i+1:2d} = {s:.4f}  (Variance expliquée: {s**2/np.sum(self.S**2)*100:.2f}%)")
         
@@ -325,7 +325,7 @@ class NetworkSVDAnalyzer:
         # Stats cache
         if self.use_cache and self.cache:
             stats = self.cache.stats()
-            print(f"\\n[Cache] L1: {stats['l1_size']}, L2: {stats['l2_files']}, L3: {stats['l3_metrics']}")
+            print(f"\n[Cache] L1: {stats['l1_size']}, L2: {stats['l2_files']}, L3: {stats['l3_metrics']}")
         
         return self.S, self.explained_variance_ratio
     
@@ -334,7 +334,7 @@ class NetworkSVDAnalyzer:
         Identification des vulnérabilités via analyse spectrale.
         Utilise le cache L3 pour les centralités si disponible.
         """
-        print("\\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print("PHASE 2 : ANALYSE DES VULNÉRABILITÉS (Optimisée)")
         print("=" * 60)
         
@@ -391,7 +391,7 @@ class NetworkSVDAnalyzer:
             vuln.centrality_rank = i + 1
         
         # Affichage des top vulnérabilités
-        print(f"\\nTop 10 Nœuds Critiques (Vulnérabilités) :")
+        print(f"\nTop 10 Nœuds Critiques (Vulnérabilités) :")
         print("{:<6} {:<6} {:<10} {:<12} {}".format("Rank", "Node", "Score", "Sensibilité", "Vecteur d'attaque"))
         print("-" * 80)
         for vuln in self.vulnerabilities[:10]:
@@ -405,7 +405,7 @@ class NetworkSVDAnalyzer:
         Modélisation des vecteurs de perturbation stochastique locale.
         Option de parallélisation avec Joblib.
         """
-        print("\\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print("PHASE 3 : MODÉLISATION DES PERTURBATIONS STOCHASTIQUES")
         print("=" * 60)
         
@@ -469,7 +469,7 @@ class NetworkSVDAnalyzer:
     
     def reconstruct_reduced_network(self, k: int = 5):
         """Reconstruction du réseau avec k composantes principales (A3 corrigé: seuil 90ème percentile)"""
-        print("\\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print(f"PHASE 4 : RECONSTRUCTION RÉDUITE (k={k})")
         print("=" * 60)
         
@@ -497,7 +497,7 @@ class NetworkSVDAnalyzer:
         
         G_reconstructed = nx.from_numpy_array(adj_binary)
         
-        print(f"\\nComparaison des propriétés structurelles :")
+        print(f"\nComparaison des propriétés structurelles :")
         print(f"  Nœuds originaux : {self.G.number_of_nodes()}")
         print(f"  Arêtes originales : {self.G.number_of_edges()}")
         print(f"  Arêtes reconstruites : {G_reconstructed.number_of_edges()}")
@@ -518,7 +518,7 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
         os.makedirs(dir_name, exist_ok=True)
     
     fig = plt.figure(figsize=(24, 16))
-    fig.suptitle("ANALYSE DE RÉSEAU CRITIQUE - SVD & PCA v3.0\\n"
+    fig.suptitle("ANALYSE DE RÉSEAU CRITIQUE - SVD & PCA v3.0\n"
                  "Détection de Vulnérabilités et Perturbations Stochastiques", 
                  fontsize=20, fontweight='bold', y=0.98)
     
@@ -538,10 +538,10 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
     nx.draw_networkx_edges(analyzer.G, pos, alpha=0.3, width=[w/3 for w in weights], ax=ax1, edge_color='gray')
     nodes = nx.draw_networkx_nodes(analyzer.G, pos, node_color=node_colors, node_size=node_sizes, 
                                     cmap=plt.cm.Reds, ax=ax1, vmin=0, vmax=max(vuln_scores))
-    critical_labels = {v.node_id: f"N{v.node_id}\\n({v.vulnerability_score:.2f})" 
+    critical_labels = {v.node_id: f"N{v.node_id}\n({v.vulnerability_score:.2f})" 
                        for v in analyzer.vulnerabilities[:8]}
     nx.draw_networkx_labels(analyzer.G, pos, critical_labels, font_size=8, font_weight='bold', ax=ax1)
-    ax1.set_title("Réseau Critique\\n(Couleur = Vulnérabilité)", fontsize=14, fontweight='bold')
+    ax1.set_title("Réseau Critique\n(Couleur = Vulnérabilité)", fontsize=14, fontweight='bold')
     ax1.axis('off')
     sm = plt.cm.ScalarMappable(cmap=plt.cm.Reds, norm=plt.Normalize(vmin=0, vmax=max(vuln_scores)))
     sm.set_array([])
@@ -558,7 +558,7 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
     ax2_twin.plot(x[:20], cumvar[:20], 'ro-', linewidth=2, markersize=6, label='Variance Cumulative')
     ax2_twin.axhline(y=85, color='green', linestyle='--', alpha=0.7, label='Seuil 85%')
     ax2_twin.set_ylabel('Variance Expliquée Cumulative (%)', fontsize=12, color='red')
-    ax2.set_title("Spectre SVD v3.0\\n(Randomized + Cache)", fontsize=14, fontweight='bold')
+    ax2.set_title("Spectre SVD v3.0\n(Randomized + Cache)", fontsize=14, fontweight='bold')
     ax2.legend(loc='upper left')
     ax2_twin.legend(loc='center right')
     ax2.grid(True, alpha=0.3)
@@ -575,7 +575,7 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
     perturbation_matrix = np.array(perturbations)
     pert_subset = perturbation_matrix[:, top_nodes]
     im2 = ax4.imshow(pert_subset[:50].T, cmap='RdBu_r', aspect='auto', vmin=-0.5, vmax=0.5)
-    ax4.set_title("Vecteurs de Perturbation\\n(Nœuds Critiques)", fontsize=14, fontweight='bold')
+    ax4.set_title("Vecteurs de Perturbation\n(Nœuds Critiques)", fontsize=14, fontweight='bold')
     plt.colorbar(im2, ax=ax4, shrink=0.8)
     
     # Panel 5: Projection PCA
@@ -592,7 +592,7 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
                     xytext=(5, 5), textcoords='offset points', fontsize=9, fontweight='bold')
     ax5.set_xlabel(f'PC1 ({pca_2d.explained_variance_ratio_[0]*100:.1f}%)', fontsize=12)
     ax5.set_ylabel(f'PC2 ({pca_2d.explained_variance_ratio_[1]*100:.1f}%)', fontsize=12)
-    ax5.set_title("Projection PCA\\n(Espace Réduit)", fontsize=14, fontweight='bold')
+    ax5.set_title("Projection PCA\n(Espace Réduit)", fontsize=14, fontweight='bold')
     plt.colorbar(scatter, ax=ax5, shrink=0.8)
     
     # Panel 6: Erreur de Reconstruction
@@ -603,13 +603,13 @@ def create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reco
     adj_recon = analyzer.U @ np.diag(S_k) @ analyzer.Vt
     error_matrix = np.abs(analyzer.adj_matrix - adj_recon)
     im3 = ax6.imshow(error_matrix[:30, :30], cmap='hot', aspect='auto')
-    ax6.set_title(f"Erreur Reconstruction\\n(k={k_show})", fontsize=14, fontweight='bold')
+    ax6.set_title(f"Erreur Reconstruction\n(k={k_show})", fontsize=14, fontweight='bold')
     plt.colorbar(im3, ax=ax6, shrink=0.8)
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
     plt.close()
-    print(f"\\nDashboard sauvegardé: {output_path}")
+    print(f"\nDashboard sauvegardé: {output_path}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -653,7 +653,7 @@ if __name__ == "__main__":
     # Visualisation
     create_dashboard(analyzer, perturbations, impacts, adj_reconstructed, G_reconstructed, variance)
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("ANALYSE COMPLÉTÉE - v3.0 Final")
     print("=" * 60)
 

@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-# scanres
-=======
-# Network Security Analyzer - SVD/PCA
+# scanres — Network Security Analyzer (SVD/PCA)
 
 Application complète d'analyse de réseau par Décomposition en Valeurs Singulières (SVD) et Analyse en Composantes Principales (PCA) pour la détection de vulnérabilités, la modélisation de perturbations stochastiques et la simulation d'évasion IDS.
 
@@ -205,4 +202,3 @@ Pour voir la liste complète des arguments disponibles directement dans le termi
 ```bash
 python main_application.py --help
 ```
->>>>>>> bf6e2fa (Premier commit)

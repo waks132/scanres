@@ -1,9 +1,4 @@
-
-# Generate the corrected optimized_offensive_engine.py
-# Changes: A1 (reward normalization by degree, state normalization), A2 (replay buffer, adversarial retraining loop), 
-# Bug fix: transfer_efficiency inverted logic
-
-optimized_offensive_engine_v3 = '''"""
+"""
 Optimized Offensive SVD/PCA Engine v3.0 (Final)
 ================================================
 Moteur d'analyse de réseau haute performance avec:
@@ -672,7 +667,10 @@ class PPOEvasionAgent:
     def set_normalization_stats(self, mean, std):
         """A1: Définit les statistiques de normalisation pour le nœud cible"""
         self.state_mean = mean
-        self.state_std = std if std > 1e-8 else 1.0
+        # std peut être un scalaire ou un vecteur (normalisation par feature) :
+        # on remplace les écarts-types quasi nuls par 1.0 élément par élément.
+        std_arr = np.asarray(std, dtype=float)
+        self.state_std = np.where(std_arr > 1e-8, std_arr, 1.0)
         
     def select_action(self, state):
         """Sélectionne une action selon la policy actuelle (softmax)"""
@@ -1076,7 +1074,7 @@ def create_audit_dashboard(engine, surfaces, evasion_results, transfer, output_p
         os.makedirs(dir_name, exist_ok=True)
         
     fig = plt.figure(figsize=(24, 16))
-    fig.suptitle("AUDIT & OPTIMISATION OFFENSIVE v3.0 - SVD/PCA\\n"
+    fig.suptitle("AUDIT & OPTIMISATION OFFENSIVE v3.0 - SVD/PCA\n"
                  "RL Évasion (A1 corrigé), IDS Adversarial (A2), Détection Non-Linéaire", 
                  fontsize=20, fontweight='bold', y=0.98)
     
@@ -1092,7 +1090,7 @@ def create_audit_dashboard(engine, surfaces, evasion_results, transfer, output_p
                             node_size=node_sizes, ax=ax1, alpha=0.9, edgecolors='black', linewidths=0.5)
     top5 = [s.node_id for s in surfaces[:5]]
     nx.draw_networkx_labels(engine.G, pos, {n: str(n) for n in top5}, font_size=8, font_weight='bold', ax=ax1)
-    ax1.set_title("Topologie du Réseau\\n(Communautés & Vulnérabilité)", fontsize=14, fontweight='bold')
+    ax1.set_title("Topologie du Réseau\n(Communautés & Vulnérabilité)", fontsize=14, fontweight='bold')
     ax1.axis('off')
     
     # Panel 2: Spectre SVD
@@ -1104,7 +1102,7 @@ def create_audit_dashboard(engine, surfaces, evasion_results, transfer, output_p
     cumvar = np.cumsum(S**2) / np.sum(S**2) * 100
     ax2_twin.plot(x[:25], cumvar[:25], 'ro-', linewidth=2, markersize=6)
     ax2_twin.axhline(y=85, color='green', linestyle='--', alpha=0.7)
-    ax2.set_title("Spectre SVD Randomized\\n(Cache Hiérarchique)", fontsize=14, fontweight='bold')
+    ax2.set_title("Spectre SVD Randomized\n(Cache Hiérarchique)", fontsize=14, fontweight='bold')
     ax2.grid(True, alpha=0.3)
     
     # Panel 3: Surfaces d'attaque
@@ -1152,7 +1150,7 @@ def create_audit_dashboard(engine, surfaces, evasion_results, transfer, output_p
         ax5.fill_between(episodes, 0, evasion_results['ids_threshold_history'], alpha=0.2, color='purple')
         ax5.set_xlabel('Episode')
         ax5.set_ylabel('Seuil IDS')
-        ax5.set_title("Évolution du Seuil IDS\\n(Adversarial Retraining + Drift)", fontsize=14, fontweight='bold')
+        ax5.set_title("Évolution du Seuil IDS\n(Adversarial Retraining + Drift)", fontsize=14, fontweight='bold')
         ax5.grid(True, alpha=0.3)
     
     # Panel 6: Rapport
@@ -1218,7 +1216,7 @@ if __name__ == "__main__":
     
     # Caractéristiques spectrales
     features = engine.extract_spectral_features()
-    print(f"\\nCaractéristiques spectrales:")
+    print(f"\nCaractéristiques spectrales:")
     for k, v in features.items():
         if not isinstance(v, np.ndarray):
             print(f"  {k}: {v:.4f}")
@@ -1227,14 +1225,14 @@ if __name__ == "__main__":
     intelligence = OffensiveIntelligenceEngine(engine)
     surfaces = intelligence.proactive_vulnerability_scan(use_nonlinear=True, use_parallel=True)
     
-    print(f"\\nTop 10 Surfaces d'Attaque:")
+    print(f"\nTop 10 Surfaces d'Attaque:")
     for i, s in enumerate(surfaces[:10]):
         print(f"  {i+1}. N{s.node_id}: {s.attack_vector} (Score: {s.exploitability_score:.3f})")
     
     # Évasion IDS avec RL (A1 corrigé)
     simulator = AdvancedIDSEvasionSimulator(engine, intelligence)
     evasion = simulator.simulate_adaptive_evasion(surfaces[0], n_episodes=100, use_rl=True)
-    print(f"\\nÉvasion RL: {np.mean(evasion['evasion_success'])*100:.0f}% de succès")
+    print(f"\nÉvasion RL: {np.mean(evasion['evasion_success'])*100:.0f}% de succès")
     
     # Transfer learning (BUG FIXÉ)
     transfer = {}
@@ -1245,8 +1243,6 @@ if __name__ == "__main__":
     # Visualisation
     create_audit_dashboard(engine, surfaces, evasion, transfer)
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("EXÉCUTION TERMINÉE - v3.0 Final")
     print("=" * 60)
-'''
-

@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Caches & generated artifacts
+cache_l2/
+output/
+*.npz
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
