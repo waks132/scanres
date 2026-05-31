@@ -3,7 +3,7 @@
 # Changes: A1 (reward normalization by degree, state normalization), A2 (replay buffer, adversarial retraining loop), 
 # Bug fix: transfer_efficiency inverted logic
 
-optimized_offensive_engine_v3 = '''"""
+"""
 Optimized Offensive SVD/PCA Engine v3.0 (Final)
 ================================================
 Moteur d'analyse de réseau haute performance avec:
@@ -1248,5 +1248,4 @@ if __name__ == "__main__":
     print("\\n" + "=" * 60)
     print("EXÉCUTION TERMINÉE - v3.0 Final")
     print("=" * 60)
-'''
 

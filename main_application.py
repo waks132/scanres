@@ -1,4 +1,4 @@
-"""
+﻿"""
 Network Security Analyzer v3.0 - Application Complète Finalisée
 =================================================================
 Application unifiée d'analyse de réseau par SVD/PCA avec toutes les corrections:
@@ -80,7 +80,7 @@ class StructuredLogger:
         self.records.append(record)
         # Écrire immédiatement en mode append
         with open(self.log_file, 'a') as f:
-            f.write(json.dumps(record) + "\\n")
+            f.write(json.dumps(record, default=str) + "\\n")
         return record
     
     def info(self, event, **kwargs):
@@ -972,4 +972,5 @@ Exemples d'utilisation:
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
